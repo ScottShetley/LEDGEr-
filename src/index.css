@@ -1,0 +1,92 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+/* Safe-area insets for Android 14/15 edge-to-edge system navigation */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+.safe-top-padding {
+  padding-top: max(0.25rem, env(safe-area-inset-top, 0px));
+}
+
+.safe-bottom-padding {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* Leaflet Map overrides for tactical dark mode */
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  background-color: #090d16 !important;
+  font-family: inherit;
+  z-index: 1;
+}
+
+.leaflet-bar {
+  border: 1px solid #334155 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 0.75rem !important;
+  overflow: hidden;
+}
+
+.leaflet-bar a {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  color: #f8fafc !important;
+  border-bottom: 1px solid #334155 !important;
+  width: 34px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  backdrop-filter: blur(8px);
+}
+
+.leaflet-bar a:hover {
+  background-color: #ea580c !important;
+  color: #ffffff !important;
+}
+
+/* Custom Tactical Tooltip styling */
+.leaflet-tooltip {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  color: #f8fafc !important;
+  border: 1px solid #475569 !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(8px);
+}
+
+.leaflet-tooltip-top:before {
+  border-top-color: #475569 !important;
+}
+
+/* Hide scrollbar on tabs & tickers with iOS momentum touch scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.touch-pan-x {
+  touch-action: pan-x;
+}
+
+/* Bounce animation for primary trigger */
+@keyframes bounceSubtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-bounce-subtle {
+  animation: bounceSubtle 3s ease-in-out infinite;
+}

@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastActiveAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Catch": {
+      "title": "Catch",
+      "description": "Angler catch log record including telemetry and GPS",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "lat": { "type": "number" },
+        "lon": { "type": "number" },
+        "accuracyMeters": { "type": "number" },
+        "mode": { "type": "string", "enum": ["boat", "bank"] },
+        "species": { "type": "string" },
+        "isBait": { "type": "boolean" },
+        "baitRig": { "type": "string" },
+        "presentation": { "type": "string" },
+        "waterDepthFeet": { "type": "number" },
+        "current": { "type": "string" },
+        "bottomStructure": { "type": "string" },
+        "waterClarity": { "type": "string" },
+        "weightLbs": { "type": "number" },
+        "lengthInches": { "type": "number" },
+        "notes": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "photoBlobId": { "type": "string" },
+        "photoFit": { "type": "string" },
+        "photoPosition": { "type": "string" },
+        "photoRotation": { "type": "number" },
+        "environmentalSnapshot": { "type": "object" },
+        "title": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "timestamp", "lat", "lon"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document containing user preferences"
+    },
+    "/users/{userId}/catches/{catchId}": {
+      "schema": "Catch",
+      "description": "Private angler catch logs and trophies owned by the user"
+    }
+  }
+}

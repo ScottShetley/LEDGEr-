@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation for User Profile
+    function isValidUserProfile(data, userId) {
+      return data.uid == userId &&
+        data.email is string &&
+        data.email.size() > 3 && data.email.size() <= 120 &&
+        (!('displayName' in data) || data.displayName == null || (data.displayName is string && data.displayName.size() <= 100)) &&
+        (!('photoURL' in data) || data.photoURL == null || (data.photoURL is string && data.photoURL.size() <= 2000));
+    }
+
+    // Validation for Catch Record - resilient to nulls, ints, floats, and optional telemetry
+    function isValidCatch(data, userId) {
+      return data.userId == userId &&
+        data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+        (data.lat is number || data.lat is int) &&
+        (data.lon is number || data.lon is int) &&
+        (!('species' in data) || data.species == null || (data.species is string && data.species.size() <= 150)) &&
+        (!('mode' in data) || data.mode == null || (data.mode is string && data.mode.size() <= 20)) &&
+        (!('isBait' in data) || data.isBait == null || data.isBait is bool) &&
+        (!('weightLbs' in data) || data.weightLbs == null || (data.weightLbs is number && data.weightLbs >= 0 && data.weightLbs <= 500) || (data.weightLbs is int && data.weightLbs >= 0 && data.weightLbs <= 500)) &&
+        (!('lengthInches' in data) || data.lengthInches == null || (data.lengthInches is number && data.lengthInches >= 0 && data.lengthInches <= 200) || (data.lengthInches is int && data.lengthInches >= 0 && data.lengthInches <= 200)) &&
+        (!('waterDepthFeet' in data) || data.waterDepthFeet == null || (data.waterDepthFeet is number && data.waterDepthFeet >= 0 && data.waterDepthFeet <= 500) || (data.waterDepthFeet is int && data.waterDepthFeet >= 0 && data.waterDepthFeet <= 500)) &&
+        (!('notes' in data) || data.notes == null || (data.notes is string && data.notes.size() <= 10000)) &&
+        (!('photoUrl' in data) || data.photoUrl == null || data.photoUrl is string) &&
+        (!('baitRig' in data) || data.baitRig == null || data.baitRig is string) &&
+        (!('presentation' in data) || data.presentation == null || data.presentation is string) &&
+        (!('current' in data) || data.current == null || data.current is string) &&
+        (!('bottomStructure' in data) || data.bottomStructure == null || data.bottomStructure is string) &&
+        (!('waterClarity' in data) || data.waterClarity == null || data.waterClarity is string) &&
+        (!('title' in data) || data.title == null || data.title is string) &&
+        (!('accuracyMeters' in data) || data.accuracyMeters == null || data.accuracyMeters is number || data.accuracyMeters is int) &&
+        (!('environmentalSnapshot' in data) || data.environmentalSnapshot == null || data.environmentalSnapshot is map);
+    }
+
+    // Match /users/{userId}
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming(), userId);
+      allow update: if isOwner(userId) && isValidUserProfile(incoming(), userId) && incoming().uid == existing().uid;
+      allow delete: if isOwner(userId);
+
+      // Match /users/{userId}/catches/{catchId}
+      match /catches/{catchId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(catchId) && isValidCatch(incoming(), userId);
+        allow update: if isOwner(userId) && isValidCatch(incoming(), userId) && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

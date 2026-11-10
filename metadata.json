@@ -1,0 +1,6 @@
+{
+  "name": "LEDGEr",
+  "description": "Tactical mobile-first freshwater river catch log and offline map ledger by BIGGUY_littleboat.",
+  "requestFramePermissions": ["geolocation", "camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

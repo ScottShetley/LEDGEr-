@@ -1,0 +1,81 @@
+{
+  "name": "LEDGEr — by BIGGUY_littleboat",
+  "short_name": "LEDGEr",
+  "description": "Tactical Catfish Logging, GPS Pinpointing, and Solunar Intelligence Platform for big-river angling.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "lang": "en-US",
+  "dir": "ltr",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#020617",
+  "theme_color": "#0F172A",
+  "prefer_related_applications": false,
+  "categories": ["sports", "utilities", "navigation"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/feature-graphic.png",
+      "sizes": "1024x500",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "LEDGEr Tactical Catfish Ledger & Navigation Suite"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Log Catch",
+      "short_name": "Catch",
+      "description": "Quickly record a catfish strike at current GPS coordinates",
+      "url": "/?action=log-catch",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Bait Spot Hub",
+      "short_name": "Bait",
+      "description": "View live bait catch and casting waypoints",
+      "url": "/?view=bait",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Tactical Map",
+      "short_name": "Map",
+      "description": "Navigate river ledger with sonar depth overlays",
+      "url": "/?view=map",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

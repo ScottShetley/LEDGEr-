@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <path id="appIconArc" d="M 66 256 A 190 190 0 1 1 446 256" fill="none" />
+  </defs>
+
+  <!-- Circular Outer Badge -->
+  <circle cx="256" cy="256" r="250" fill="#FFFFFF" />
+  <circle cx="256" cy="256" r="236" fill="none" stroke="#000000" stroke-width="18" />
+
+  <!-- Arched Text "BIGGUY_littleboat" -->
+  <text fill="#000000" font-size="46" font-weight="900" font-family="system-ui, -apple-system, sans-serif" letter-spacing="3" text-anchor="middle">
+    <textPath href="#appIconArc" startOffset="50%">
+      BIGGUY_littleboat
+    </textPath>
+  </text>
+
+  <!-- Center Graphic: Vessel, Angler, Rod & Catfish -->
+  <g transform="translate(0, 0)">
+    <!-- Water Waves -->
+    <path d="M 90 325 Q 135 308 180 325 T 270 325 T 360 325 T 420 325" stroke="#000000" stroke-width="6.5" stroke-linecap="round" fill="none" />
+    <path d="M 110 350 Q 160 332 210 350 T 310 350 T 405 350" stroke="#000000" stroke-width="6" stroke-linecap="round" fill="none" />
+    <path d="M 140 372 Q 195 358 255 372 T 370 372" stroke="#000000" stroke-width="5.5" stroke-linecap="round" fill="none" />
+
+    <!-- Outboard Motor -->
+    <path d="M 100 290 L 115 290 L 112 316 L 98 316 Z" fill="#000000" />
+    <path d="M 95 282 C 95 277 100 274 108 274 C 115 274 120 277 120 282 L 118 295 L 98 295 Z" fill="#000000" />
+
+    <!-- Boat Hull -->
+    <path d="M 108 300 L 122 326 L 332 326 C 352 326, 372 316, 382 290 L 356 298 L 124 298 Z" fill="#000000" />
+
+    <!-- Angler Silhouette -->
+    <path d="M 160 298 C 154 276, 156 250, 172 234 C 182 224, 202 224, 215 236 C 228 250, 237 262, 251 265 L 261 257 C 266 260, 264 270, 253 275 L 238 278 C 230 290, 240 298, 248 298 L 230 300 L 210 295 L 185 300 Z" fill="#000000" />
+    <circle cx="190" cy="216" r="18" fill="#000000" />
+    <path d="M 185 206 C 195 203, 208 206, 216 213 L 203 218 Z" fill="#000000" />
+    <path d="M 202 242 C 218 245, 238 250, 253 255 L 248 265 C 233 260, 215 255, 200 252 Z" fill="#000000" />
+
+    <!-- Deeply Loaded Fishing Rod -->
+    <path d="M 241 262 C 256 218, 284 186, 322 182 C 352 180, 374 199, 379 220" fill="none" stroke="#000000" stroke-width="6.5" stroke-linecap="round" />
+    <!-- Fishing Line -->
+    <path d="M 379 220 L 361 346" stroke="#000000" stroke-width="3" stroke-linecap="round" />
+
+    <!-- Catfish -->
+    <path d="M 361 346 C 345 336, 320 346, 301 364 C 288 376, 279 389, 258 394 C 266 384, 279 371, 294 358 C 313 340, 343 325, 365 330 C 376 335, 371 346, 361 346 Z" fill="#000000" />
+    <!-- Whiskers / Barbels -->
+    <path d="M 365 338 C 382 333, 395 340, 390 356" fill="none" stroke="#000000" stroke-width="4.5" stroke-linecap="round" />
+    <path d="M 361 348 C 376 351, 384 361, 379 371" fill="none" stroke="#000000" stroke-width="4" stroke-linecap="round" />
+    <!-- Tail Fin -->
+    <path d="M 263 392 L 242 379 L 250 395 L 237 407 L 260 400 Z" fill="#000000" />
+    <path d="M 338 333 L 327 318 L 320 336 Z" fill="#000000" />
+  </g>
+</svg>
