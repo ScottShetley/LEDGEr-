@@ -73,14 +73,27 @@ export function handleFirestoreError(
   throw new Error(JSON.stringify(errInfo));
 }
 
+// Merge file config with environment variable overrides
+const env = (import.meta as any).env || {};
+const resolvedFirebaseConfig = {
+  ...firebaseConfig,
+  apiKey: (env.VITE_FIREBASE_API_KEY as string) || firebaseConfig.apiKey,
+  projectId: (env.VITE_FIREBASE_PROJECT_ID as string) || firebaseConfig.projectId,
+  appId: (env.VITE_FIREBASE_APP_ID as string) || firebaseConfig.appId,
+  authDomain: (env.VITE_FIREBASE_AUTH_DOMAIN as string) || firebaseConfig.authDomain,
+  firestoreDatabaseId: (env.VITE_FIREBASE_FIRESTORE_DATABASE_ID as string) || firebaseConfig.firestoreDatabaseId,
+  storageBucket: (env.VITE_FIREBASE_STORAGE_BUCKET as string) || firebaseConfig.storageBucket,
+  messagingSenderId: (env.VITE_FIREBASE_MESSAGING_SENDER_ID as string) || firebaseConfig.messagingSenderId,
+};
+
 // Initialize Firebase App (strip empty string keys such as measurementId to prevent library warnings)
 const cleanFirebaseConfig = Object.fromEntries(
-  Object.entries(firebaseConfig).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+  Object.entries(resolvedFirebaseConfig).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
 );
 export const app = getApps().length > 0 ? getApp() : initializeApp(cleanFirebaseConfig);
 
-// CRITICAL: getFirestore must pass firebaseConfig.firestoreDatabaseId
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+// CRITICAL: getFirestore must pass firestoreDatabaseId
+export const db = getFirestore(app, resolvedFirebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 
 const QUOTA_STORAGE_KEY = 'firestore_quota_exhausted_until';
@@ -202,7 +215,7 @@ export async function signInWithGoogle(): Promise<User> {
     if (err?.code === 'auth/unauthorized-domain') {
       const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'ledgerfishing.com';
       const friendlyErr = new Error(
-        `Domain "${currentHost}" must be authorized in Firebase. Add "${currentHost}" in Firebase Console (Project: ${firebaseConfig.projectId}) -> Authentication -> Settings -> Authorized domains.`
+        `Domain "${currentHost}" must be authorized in Firebase. Add "${currentHost}" in Firebase Console (Project: ${resolvedFirebaseConfig.projectId}) -> Authentication -> Settings -> Authorized domains.`
       );
       (friendlyErr as any).code = 'auth/unauthorized-domain';
       console.error('Google sign-in unauthorized domain:', friendlyErr.message);
