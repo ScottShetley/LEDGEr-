@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Compass,
   Gauge,
@@ -36,6 +36,7 @@ import { normalizeBaitName } from '../utils/baitNormalizer';
 interface TacticalGameplanProps {
   catches: CatchLog[];
   gpsState?: LiveGpsState;
+  liveWeather?: EnvironmentalSnapshot | null;
   onDeploySetup?: (setup: {
     species?: SpeciesCategory;
     presentation?: string;
@@ -50,28 +51,45 @@ interface TacticalGameplanProps {
 export const TacticalGameplan: React.FC<TacticalGameplanProps> = ({
   catches,
   gpsState,
+  liveWeather,
   onDeploySetup,
   onOpenGuide,
 }) => {
   const [selectedTargetSpecies, setSelectedTargetSpecies] = useState<SpeciesCategory | 'All Catfish'>('Blue Catfish');
-  const [liveSnapshot, setLiveSnapshot] = useState<EnvironmentalSnapshot | null>(null);
+  const [liveSnapshot, setLiveSnapshot] = useState<EnvironmentalSnapshot | null>(liveWeather ?? null);
   const [isLoadingTelemetry, setIsLoadingTelemetry] = useState(false);
-  const [lastFetchedTime, setLastFetchedTime] = useState<number | null>(null);
+  const [lastFetchedTime, setLastFetchedTime] = useState<number | null>(liveWeather?.fetchedAt ?? null);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Target coordinates (GPS lock or fallback to last known river waypoint)
   const currentLat = gpsState?.lat ?? 32.461;
   const currentLon = gpsState?.lon ?? -84.987;
 
-  // Fetch telemetry on mount or location change
-  const refreshTelemetry = async () => {
+  // Track last coordinates fetched to enforce 0.05° (~3.5 mile) geographic deadband
+  const lastFetchedLocationRef = useRef<{ lat: number; lon: number } | null>(
+    liveWeather ? { lat: currentLat, lon: currentLon } : null
+  );
+
+  // Synchronize with top-level liveWeather if supplied and more recent
+  useEffect(() => {
+    if (liveWeather) {
+      setLiveSnapshot(liveWeather);
+      setLastFetchedTime(liveWeather.fetchedAt ?? Date.now());
+      lastFetchedLocationRef.current = { lat: currentLat, lon: currentLon };
+    }
+  }, [liveWeather]);
+
+  // Fetch telemetry only on initial mount or when vessel relocates to another pool (>0.05° / ~3.5 miles)
+  const refreshTelemetry = async (force: boolean = false) => {
+    if (isLoadingTelemetry) return;
     setIsLoadingTelemetry(true);
     setFetchError(null);
     try {
-      const snap = await getLiveEnvironmentalSnapshot(currentLat, currentLon);
+      const snap = await getLiveEnvironmentalSnapshot(currentLat, currentLon, !navigator.onLine, force);
       setLiveSnapshot(snap);
       setLastFetchedTime(Date.now());
-    } catch (err) {
+      lastFetchedLocationRef.current = { lat: currentLat, lon: currentLon };
+    } catch {
       setFetchError('Could not refresh live river telemetry. Using cached baseline.');
     } finally {
       setIsLoadingTelemetry(false);
@@ -79,7 +97,15 @@ export const TacticalGameplan: React.FC<TacticalGameplanProps> = ({
   };
 
   useEffect(() => {
-    refreshTelemetry();
+    // If we already have a snapshot, check if vessel has actually relocated beyond the deadband
+    const hasMovedSignificantly =
+      !lastFetchedLocationRef.current ||
+      Math.abs(lastFetchedLocationRef.current.lat - currentLat) > 0.05 ||
+      Math.abs(lastFetchedLocationRef.current.lon - currentLon) > 0.05;
+
+    if (hasMovedSignificantly && !liveSnapshot) {
+      refreshTelemetry(false);
+    }
   }, [currentLat, currentLon]);
 
   // Live Solunar calculation for current coordinates
@@ -273,14 +299,25 @@ export const TacticalGameplan: React.FC<TacticalGameplanProps> = ({
             </span>
           </div>
 
-          <button
-            onClick={refreshTelemetry}
-            disabled={isLoadingTelemetry}
-            className="self-start sm:self-auto flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoadingTelemetry ? 'animate-spin text-amber-400' : ''}`} />
-            <span>{isLoadingTelemetry ? 'Reading Gauges...' : 'Refresh'}</span>
-          </button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {lastFetchedTime && !isLoadingTelemetry && (
+              <span className="text-[10px] text-slate-400 font-mono hidden sm:inline">
+                {Math.round((Date.now() - lastFetchedTime) / 60000) <= 0
+                  ? 'Updated just now'
+                  : `Updated ${Math.round((Date.now() - lastFetchedTime) / 60000)}m ago`}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => refreshTelemetry(true)}
+              disabled={isLoadingTelemetry}
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+              title="Force refresh river gauges from USGS NWIS & Open-Meteo"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingTelemetry ? 'animate-spin text-amber-400' : ''}`} />
+              <span>{isLoadingTelemetry ? 'Reading Gauges...' : 'Refresh'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Telemetry Metric Badges */}
@@ -509,14 +546,22 @@ export const TacticalGameplan: React.FC<TacticalGameplanProps> = ({
 
       {/* Hourly Bite Windows & Solunar Transits for Today */}
       <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 font-mono text-xs">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+        <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-2 gap-2">
           <span className="font-extrabold uppercase text-slate-200 flex items-center gap-1.5">
             <Clock className="w-4 h-4 text-amber-400" />
             Today's Feeding Window Schedule
           </span>
-          <span className="text-amber-400 text-[10px] font-bold">
-            {solunar.dayRating} Solunar Rating
-          </span>
+          <div className="flex items-center gap-3 text-[11px]">
+            <span className="text-[#84CC16] font-medium">
+              Rise: <strong className="font-mono text-white">{liveSnapshot?.sunriseTime || solunar.sunriseTime || '06:30 AM'}</strong>
+            </span>
+            <span className="text-[#F97316] font-medium">
+              Set: <strong className="font-mono text-white">{liveSnapshot?.sunsetTime || solunar.sunsetTime || '05:15 PM'}</strong>
+            </span>
+            <span className="text-amber-400 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+              {solunar.dayRating} Solunar Rating
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">

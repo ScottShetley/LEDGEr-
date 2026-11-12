@@ -106,6 +106,9 @@ export interface SolunarData {
   currentRating: SolunarPeriodType;
   currentWindowDesc: string;
   dayRating: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  sunriseTime?: string;
+  sunsetTime?: string;
+  solarNoonTime?: string;
 }
 
 export interface EnvironmentalSnapshot {
@@ -125,6 +128,9 @@ export interface EnvironmentalSnapshot {
   solunarRating?: SolunarPeriodType;
   moonPhaseName?: string;
   moonIlluminationPercent?: number;
+  sunriseTime?: string;
+  sunsetTime?: string;
+  solarNoonTime?: string;
   isOfflineQueued?: boolean;
   fetchedAt?: number;
 }

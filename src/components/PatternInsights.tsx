@@ -33,14 +33,17 @@ import {
   LiveGpsState,
   BottomStructure,
   CurrentCondition,
+  EnvironmentalSnapshot,
 } from '../types';
 import { normalizeBaitName } from '../utils/baitNormalizer';
+import { calculateSunTimes } from '../utils/solunar';
 import { TacticalGameplan } from './TacticalGameplan';
 import { AboutModal } from './AboutModal';
 
 interface PatternInsightsProps {
   catches: CatchLog[];
   gpsState?: LiveGpsState;
+  liveWeather?: EnvironmentalSnapshot | null;
   onDeploySetup?: (setup: {
     species?: SpeciesCategory;
     presentation?: string;
@@ -106,6 +109,7 @@ function getDaypart(timestamp: number): Daypart {
 export const PatternInsights: React.FC<PatternInsightsProps> = ({
   catches,
   gpsState,
+  liveWeather,
   onDeploySetup,
   onOpenGuide,
 }) => {
@@ -376,7 +380,11 @@ export const PatternInsights: React.FC<PatternInsightsProps> = ({
   );
   const peakDaypart = sortedDayparts[0];
 
-  // 11. Solunar Window Success
+  // 11. Astronomical Sun times & Solunar Window Success
+  const sunTimes = useMemo(() => {
+    return calculateSunTimes(new Date(), gpsState?.lat ?? 32.461, gpsState?.lon ?? -84.987);
+  }, [gpsState?.lat, gpsState?.lon]);
+
   const solunarStats = {
     Major: filteredCatches.filter(c => c.environmentalSnapshot?.solunarRating === 'Major').length,
     Minor: filteredCatches.filter(c => c.environmentalSnapshot?.solunarRating === 'Minor').length,
@@ -430,6 +438,7 @@ export const PatternInsights: React.FC<PatternInsightsProps> = ({
         <TacticalGameplan
           catches={catches}
           gpsState={gpsState}
+          liveWeather={liveWeather}
           onDeploySetup={onDeploySetup}
           onOpenGuide={handleOpenGuide}
         />
@@ -1052,20 +1061,23 @@ export const PatternInsights: React.FC<PatternInsightsProps> = ({
 
             {/* 24-Hour Daypart Bite Clock (#6) */}
             <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-2 gap-2">
                 <span className="font-extrabold uppercase text-slate-200 flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-amber-400" />
                   24-Hour Daypart Feeding Distribution
                 </span>
-                <span className="text-slate-500 text-[10px]">Time of Strike</span>
+                <div className="flex items-center gap-2.5 text-[10px] font-mono">
+                  <span className="text-[#84CC16]">Rise: <strong className="text-white">{sunTimes.sunrise}</strong></span>
+                  <span className="text-[#F97316]">Set: <strong className="text-white">{sunTimes.sunset}</strong></span>
+                </div>
               </div>
 
               <div className="space-y-2.5">
                 {[
-                  { part: 'Dawn (05:00 - 08:59)', key: 'Dawn', icon: Sunrise, color: 'from-orange-500 to-amber-400' },
+                  { part: `Dawn (${sunTimes.sunrise} window)`, key: 'Dawn', icon: Sunrise, color: 'from-orange-500 to-amber-400' },
                   { part: 'Morning (09:00 - 11:59)', key: 'Morning', icon: Sun, color: 'from-amber-400 to-yellow-400' },
                   { part: 'Afternoon (12:00 - 16:59)', key: 'Afternoon', icon: Sun, color: 'from-yellow-500 to-orange-500' },
-                  { part: 'Dusk (17:00 - 20:59)', key: 'Dusk', icon: Sunset, color: 'from-orange-600 to-red-500' },
+                  { part: `Dusk (${sunTimes.sunset} window)`, key: 'Dusk', icon: Sunset, color: 'from-orange-600 to-red-500' },
                   { part: 'Night (21:00 - 04:59)', key: 'Night', icon: Moon, color: 'from-indigo-600 to-blue-500' },
                 ].map(item => {
                   const count = daypartCounts[item.key as Daypart];

@@ -404,7 +404,11 @@ export default function App() {
     };
   }, [startGpsWatch]);
 
-  // Fetch Live Weather & USGS Water Stage when GPS is active
+  // Quantize coordinates to ~0.05° (~3.5 miles) to prevent continuous re-fetches from GPS micro-jitter
+  const quantizedLat = gpsState.lat !== null ? Math.round(gpsState.lat * 20) / 20 : null;
+  const quantizedLon = gpsState.lon !== null ? Math.round(gpsState.lon * 20) / 20 : null;
+
+  // Fetch Live Weather & USGS Water Stage when GPS is active or vessel moves to a new river pool
   useEffect(() => {
     const latestCatch = catches[0];
     const targetLat = gpsState.lat ?? (latestCatch?.lat ?? 32.4610);
@@ -433,7 +437,7 @@ export default function App() {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [gpsState.lat, gpsState.lon]);
+  }, [quantizedLat, quantizedLon]);
 
   // Auto-bank 50-mile radius around launch location when online (e.g. at boat ramp).
   // CRITICAL: Only auto-bank AFTER GPS has achieved a verified 'locked' status for the current session!
@@ -673,6 +677,7 @@ export default function App() {
             <PatternInsights
               catches={catches}
               gpsState={gpsState}
+              liveWeather={liveWeather}
               onDeploySetup={handleDeployTacticalSetup}
             />
           </div>
@@ -714,13 +719,17 @@ export default function App() {
               <span className="text-[10px] text-[#84CC16] leading-none mb-1 font-bold uppercase tracking-wider">
                 Sunrise
               </span>
-              <span className="text-xs font-mono font-bold text-white">06:14 AM</span>
+              <span className="text-xs font-mono font-bold text-white">
+                {liveWeather?.sunriseTime || solunar.sunriseTime || '06:30 AM'}
+              </span>
             </div>
             <div className="flex flex-col text-right">
               <span className="text-[10px] text-[#F97316] leading-none mb-1 font-bold uppercase tracking-wider">
                 Sunset
               </span>
-              <span className="text-xs font-mono font-bold text-white">08:22 PM</span>
+              <span className="text-xs font-mono font-bold text-white">
+                {liveWeather?.sunsetTime || solunar.sunsetTime || '05:15 PM'}
+              </span>
             </div>
             <div className="flex flex-col text-right hidden sm:flex">
               <span className="text-[10px] text-blue-400 leading-none mb-1 font-bold uppercase tracking-wider">

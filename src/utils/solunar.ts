@@ -127,6 +127,102 @@ function formatTimeHHMM(hours: number, minutes: number): string {
   return `${displayHours}:${displayMinutes} ${period}`;
 }
 
+function formatMinutesToTime(totalMinutes: number): string {
+  const m = ((Math.round(totalMinutes) % 1440) + 1440) % 1440;
+  const hours24 = Math.floor(m / 60);
+  const minutes = m % 60;
+  const period = hours24 >= 12 ? 'PM' : 'AM';
+  const displayHours = hours24 % 12 === 0 ? 12 : hours24 % 12;
+  const displayMinutes = minutes < 10 ? `0${minutes}` : `${minutes}`;
+  return `${displayHours}:${displayMinutes} ${period}`;
+}
+
+/**
+ * Astronomical Sunrise, Sunset, and Solar Noon calculation (NOAA Meeus Ephemeris).
+ * 100% offline, zero network dependencies, exact to within ~1 minute of official tables.
+ */
+export function calculateSunTimes(
+  date: Date = new Date(),
+  lat: number = 33.749,
+  lon: number = -84.388
+): { sunrise: string; sunset: string; solarNoon: string } {
+  const jd = toJulianDay(date);
+  const T = (jd - 2451545.0) / 36525;
+
+  const L0 = normalizeDeg(280.46646 + 36000.76983 * T + 0.0003032 * T * T);
+  const M = normalizeDeg(357.52911 + 35999.05029 * T - 0.0001537 * T * T);
+  const e = 0.016708634 - 0.000042037 * T - 0.0000001267 * T * T;
+
+  const C =
+    (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(toRad(M)) +
+    (0.019993 - 0.000101 * T) * Math.sin(toRad(2 * M)) +
+    0.000289 * Math.sin(toRad(3 * M));
+
+  const sunTrueLong = L0 + C;
+  const omega = 125.04 - 1934.136 * T;
+  const lambda = sunTrueLong - 0.00569 - 0.00478 * Math.sin(toRad(omega));
+
+  const eps0 =
+    23 +
+    (26 +
+      (21.448 - 46.815 * T - 0.00059 * T * T + 0.001813 * T * T * T) / 60) /
+      60;
+  const eps = eps0 + 0.00256 * Math.cos(toRad(omega));
+
+  const deltaRad = Math.asin(Math.sin(toRad(eps)) * Math.sin(toRad(lambda)));
+
+  const y = Math.tan(toRad(eps) / 2) * Math.tan(toRad(eps) / 2);
+  const eotMinutes =
+    4 *
+    ((y * Math.sin(2 * toRad(L0)) -
+      2 * e * Math.sin(toRad(M)) +
+      4 * e * y * Math.sin(toRad(M)) * Math.cos(2 * toRad(L0)) -
+      0.5 * y * y * Math.sin(4 * toRad(L0)) -
+      1.25 * e * e * Math.sin(2 * toRad(M))) *
+      180 /
+      Math.PI);
+
+  const zenithDeg = 90.833; // 90° 50' accounting for atmospheric refraction and solar disc
+  const cosH0 =
+    (Math.cos(toRad(zenithDeg)) - Math.sin(toRad(lat)) * Math.sin(deltaRad)) /
+    (Math.cos(toRad(lat)) * Math.cos(deltaRad));
+
+  let tzOffsetMin = -date.getTimezoneOffset();
+  if (tzOffsetMin === 0 && Math.abs(lon) > 15) {
+    tzOffsetMin = Math.round(lon / 15) * 60;
+  }
+
+  const solarNoonUTC = 720 - 4 * lon - eotMinutes;
+  const solarNoonLocal = solarNoonUTC + tzOffsetMin;
+
+  if (cosH0 > 1) {
+    return {
+      sunrise: 'Polar Night',
+      sunset: 'Polar Night',
+      solarNoon: formatMinutesToTime(solarNoonLocal),
+    };
+  }
+  if (cosH0 < -1) {
+    return {
+      sunrise: 'Midnight Sun',
+      sunset: 'Midnight Sun',
+      solarNoon: formatMinutesToTime(solarNoonLocal),
+    };
+  }
+
+  const H0Deg = (Math.acos(cosH0) * 180) / Math.PI;
+  const H0Minutes = H0Deg * 4;
+
+  const sunriseLocal = solarNoonLocal - H0Minutes;
+  const sunsetLocal = solarNoonLocal + H0Minutes;
+
+  return {
+    sunrise: formatMinutesToTime(sunriseLocal),
+    sunset: formatMinutesToTime(sunsetLocal),
+    solarNoon: formatMinutesToTime(solarNoonLocal),
+  };
+}
+
 export function calculateSolunar(date: Date = new Date(), lat: number = 33.749, lon: number = -84.388): SolunarData {
   const moonInfo = getMoonPhase(date);
   
@@ -205,6 +301,8 @@ export function calculateSolunar(date: Date = new Date(), lat: number = 33.749, 
     dayRating = 'Fair';
   }
 
+  const sunTimes = calculateSunTimes(date, lat, lon);
+
   return {
     moonPhaseName: moonInfo.phaseName,
     moonIlluminationPercent: moonInfo.illumination,
@@ -214,5 +312,8 @@ export function calculateSolunar(date: Date = new Date(), lat: number = 33.749, 
     currentRating,
     currentWindowDesc,
     dayRating,
+    sunriseTime: sunTimes.sunrise,
+    sunsetTime: sunTimes.sunset,
+    solarNoonTime: sunTimes.solarNoon,
   };
 }
