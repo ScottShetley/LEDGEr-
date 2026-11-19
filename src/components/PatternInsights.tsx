@@ -12,7 +12,6 @@ import {
   ChevronRight,
   Info,
   Clock,
-  Thermometer,
   Waves,
   TrendingDown,
   TrendingUp,
@@ -291,27 +290,7 @@ export const PatternInsights: React.FC<PatternInsightsProps> = ({
     else pressureTrends.steady += 1;
   });
 
-  // 6. Water Temperature Bands (USGS) (#3)
-  const waterTempBands = {
-    '< 45°F (Winter Lethargy)': 0,
-    '45 - 54°F (Spring Awakening)': 0,
-    '55 - 68°F (Pre-Spawn Prime Feed)': 0,
-    '69°F+ (Summer Pattern)': 0,
-  };
-
-  let catchesWithWaterTemp = 0;
-  filteredCatches.forEach(c => {
-    const wt = c.environmentalSnapshot?.usgsWaterTempF;
-    if (typeof wt === 'number' && !isNaN(wt)) {
-      catchesWithWaterTemp += 1;
-      if (wt < 45) waterTempBands['< 45°F (Winter Lethargy)'] += 1;
-      else if (wt <= 54) waterTempBands['45 - 54°F (Spring Awakening)'] += 1;
-      else if (wt <= 68) waterTempBands['55 - 68°F (Pre-Spawn Prime Feed)'] += 1;
-      else waterTempBands['69°F+ (Summer Pattern)'] += 1;
-    }
-  });
-
-  // 7. River Current Dynamics (#5)
+  // 6. River Current Dynamics (#5)
   const currentBands: Record<string, number> = {
     'Eddy / Seam': 0,
     'Moderate': 0,
@@ -891,41 +870,8 @@ export const PatternInsights: React.FC<PatternInsightsProps> = ({
             </div>
           </div>
 
-          {/* Section 4: River Hydrology (USGS Water Temp & River Flow CFS) (#3 & #5) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-            {/* USGS Water Temp Brackets (#3) */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <span className="font-extrabold uppercase text-slate-200 flex items-center gap-1.5">
-                  <Thermometer className="w-4 h-4 text-emerald-400" />
-                  USGS River Water Temperature Bands
-                </span>
-                <span className="text-slate-500 text-[10px]">
-                  {catchesWithWaterTemp} logs with gauge temp
-                </span>
-              </div>
-
-              <div className="space-y-2.5">
-                {Object.entries(waterTempBands).map(([band, count]) => {
-                  const pct = catchesWithWaterTemp > 0 ? Math.round((count / catchesWithWaterTemp) * 100) : 0;
-                  return (
-                    <div key={band} className="space-y-1">
-                      <div className="flex justify-between text-[11px]">
-                        <span className="font-bold text-slate-300">{band}</span>
-                        <span className="text-emerald-400 font-bold">{count} strikes ({pct}%)</span>
-                      </div>
-                      <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
-                        <div
-                          className="h-full bg-gradient-to-r from-emerald-600 to-teal-400 rounded-full transition-all duration-500"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
+          {/* Section 4: River Hydrology (USGS River Flow CFS) (#3 & #5) */}
+          <div className="grid grid-cols-1 gap-4 font-mono text-xs">
             {/* River Flow CFS Bands (#3) */}
             <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
               <div className="flex items-center justify-between border-b border-slate-800 pb-2">

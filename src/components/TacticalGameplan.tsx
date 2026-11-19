@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Compass,
   Gauge,
-  Thermometer,
   Waves,
   Flame,
   ArrowDown,
@@ -123,7 +122,6 @@ export const TacticalGameplan: React.FC<TacticalGameplanProps> = ({
   }, [activeCatches, selectedTargetSpecies]);
 
   // Current real-time factors
-  const liveTemp = liveSnapshot?.usgsWaterTempF ?? 54;
   const liveTrend = liveSnapshot?.pressureTrend ?? 'steady';
   const livePressure = liveSnapshot?.pressureInHg ?? 29.95;
   const liveFlow = liveSnapshot?.usgsFlowCfs ?? 22000;
@@ -135,12 +133,12 @@ export const TacticalGameplan: React.FC<TacticalGameplanProps> = ({
     const scoredCatches = speciesCatches.map(c => {
       let score = 0;
 
-      // Water temp affinity (within 8°F)
-      const catchTemp = c.environmentalSnapshot?.usgsWaterTempF;
-      if (typeof catchTemp === 'number') {
-        const diff = Math.abs(catchTemp - liveTemp);
-        if (diff <= 4) score += 35;
-        else if (diff <= 8) score += 20;
+      // River flow CFS affinity
+      const catchFlow = c.environmentalSnapshot?.usgsFlowCfs;
+      if (typeof catchFlow === 'number') {
+        const diff = Math.abs(catchFlow - liveFlow);
+        if (diff <= 8000) score += 35;
+        else if (diff <= 18000) score += 20;
       } else {
         score += 15; // neutral credit if offline log
       }
@@ -184,11 +182,11 @@ export const TacticalGameplan: React.FC<TacticalGameplanProps> = ({
       recommendedDepth = `${minD} – ${maxD} ft`;
       targetDepthNum = medianDepth;
     } else {
-      // Baseline river rules
-      if (liveTemp < 48) {
-        recommendedDepth = '32 – 46 ft (Deep winter scour holes)';
-        targetDepthNum = 38;
-      } else if (liveTemp <= 65) {
+      // Baseline river rules based on flow velocity
+      if (liveFlow > 35000) {
+        recommendedDepth = '28 – 42 ft (Deep scour holes & eddies)';
+        targetDepthNum = 34;
+      } else if (liveFlow > 18000) {
         recommendedDepth = '20 – 32 ft (Mid-channel drop ledge)';
         targetDepthNum = 26;
       } else {
@@ -229,7 +227,7 @@ export const TacticalGameplan: React.FC<TacticalGameplanProps> = ({
       if (selectedTargetSpecies === 'Flathead Catfish') {
         recommendedBait = 'Live Bluegill';
       } else {
-        recommendedBait = liveTemp < 50 ? 'Cut Skipjack Chunk' : 'Cut Gizzard Shad';
+        recommendedBait = liveFlow > 30000 ? 'Cut Skipjack Chunk' : 'Cut Gizzard Shad';
       }
     }
 
@@ -278,7 +276,7 @@ export const TacticalGameplan: React.FC<TacticalGameplanProps> = ({
       recommendedCurrent,
       tacticalStrategy,
     };
-  }, [speciesCatches, liveTemp, liveTrend, liveFlow, currentHour, selectedTargetSpecies]);
+  }, [speciesCatches, liveTrend, liveFlow, currentHour, selectedTargetSpecies]);
 
   return (
     <div className="space-y-5 font-sans text-slate-100">
@@ -321,7 +319,7 @@ export const TacticalGameplan: React.FC<TacticalGameplanProps> = ({
         </div>
 
         {/* Telemetry Metric Badges */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
           {/* Barometer */}
           <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-0.5">
             <div className="text-[10px] text-slate-400 uppercase font-bold flex items-center gap-1">
@@ -336,20 +334,6 @@ export const TacticalGameplan: React.FC<TacticalGameplanProps> = ({
             </div>
             <div className="text-[10px] font-semibold text-orange-400 capitalize">
               {liveTrend} Trend
-            </div>
-          </div>
-
-          {/* USGS Water Temp */}
-          <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-0.5">
-            <div className="text-[10px] text-slate-400 uppercase font-bold flex items-center gap-1">
-              <Thermometer className="w-3 h-3 text-emerald-400" />
-              <span>Water Temp</span>
-            </div>
-            <div className="text-sm font-extrabold text-white">
-              {liveSnapshot?.usgsWaterTempF ? `${liveSnapshot.usgsWaterTempF}°F` : `${liveTemp}°F (est)`}
-            </div>
-            <div className="text-[10px] font-semibold text-emerald-400">
-              {liveTemp < 48 ? 'Winter Lethargy' : liveTemp <= 65 ? 'Pre-Spawn Active' : 'Summer Feed'}
             </div>
           </div>
 
@@ -471,7 +455,7 @@ export const TacticalGameplan: React.FC<TacticalGameplanProps> = ({
               {matchedAnalysis.recommendedBait}
             </div>
             <div className="text-[11px] text-slate-400">
-              Matches water temperature & seasonal feeding mood
+              Matches current river flow & feeding pattern
             </div>
           </div>
 
@@ -488,7 +472,7 @@ export const TacticalGameplan: React.FC<TacticalGameplanProps> = ({
               {matchedAnalysis.recommendedDepth}
             </div>
             <div className="text-[11px] text-slate-400">
-              Historical strike zone in {liveTemp}°F water
+              Historical strike zone for current river flow
             </div>
           </div>
 

@@ -135,7 +135,7 @@ Answer:
 Answer: 
 
 4. USGS River Hydrology Telemetry:
-- Did the live water temp (°F) and streamflow (CFS) match your river conditions?
+- Did the live streamflow (CFS) and river stage match your river conditions?
 Answer: 
 
 5. Offline Satellite Maps:
@@ -585,27 +585,14 @@ Answer:
                   </p>
                 </div>
 
-                {/* 4. Water Temperature & Barometric Fronts */}
+                {/* 4. River Flow & Barometric Fronts */}
                 <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1.5">
                   <div className="flex items-center gap-2 font-bold text-cyan-300 font-mono">
                     <span className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center text-[10px] text-cyan-400 border border-cyan-500/30">4</span>
-                    <span>Water Temp Bands & Pressure Front Trends</span>
+                    <span>River Flow Bands & Pressure Front Trends</span>
                   </div>
                   <p className="text-slate-400 pl-7 leading-relaxed">
-                    Tracks fish activity across critical biological thresholds:
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-7 pt-1">
-                    <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-                      <span className="font-bold text-cyan-400 font-mono block">&lt; 45°F • Winter Lethargy</span>
-                      <span className="text-slate-400 text-[11px]">Deepest scour holes, zero current, slow bloody presentation.</span>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-                      <span className="font-bold text-amber-400 font-mono block">55–68°F • Pre-Spawn Prime</span>
-                      <span className="text-slate-400 text-[11px]">Aggressive feeding run onto shallow mud flats and channel edges.</span>
-                    </div>
-                  </div>
-                  <p className="text-slate-400 pl-7 pt-1 leading-relaxed">
-                    Also tracks barometric front movements: <strong className="text-emerald-400">Falling Pressure (&lt; 29.85 inHg)</strong> triggers aggressive pre-frontal feeding, while <strong className="text-slate-300">Post-Front High Pressure (&gt; 30.15 inHg)</strong> tightens fish deep into heavy structure.
+                    Tracks fish activity across river discharge velocity bands and barometric front movements: <strong className="text-emerald-400">Falling Pressure (&lt; 29.85 inHg)</strong> triggers aggressive pre-frontal feeding, while <strong className="text-slate-300">Post-Front High Pressure (&gt; 30.15 inHg)</strong> tightens fish deep into heavy structure.
                   </p>
                 </div>
 
@@ -649,7 +636,7 @@ Answer:
                     <span>Live USGS Hydrology Telemetry Stream</span>
                   </div>
                   <p className="text-slate-400 pl-7 leading-relaxed">
-                    LEDGEr contacts the closest <strong className="text-white">USGS Water Services river monitoring station</strong> based on your GPS fix, streaming real-time water temperature (°F), streamflow discharge (CFS), and river gage height directly to your phone.
+                    LEDGEr contacts the closest <strong className="text-white">USGS Water Services river monitoring station</strong> based on your GPS fix, streaming real-time streamflow discharge (CFS) and river gage height directly to your phone.
                   </p>
                 </div>
 
@@ -659,7 +646,7 @@ Answer:
                     <span>Environmental Similarity Engine</span>
                   </div>
                   <p className="text-slate-400 pl-7 leading-relaxed">
-                    The engine computes a mathematical match score comparing today's live conditions (water temp, barometric trend, time of day, Solunar rating) against your past successes. It delivers:
+                    The engine computes a mathematical match score comparing today's live conditions (river flow, barometric trend, time of day, Solunar rating) against your past successes. It delivers:
                   </p>
                   <ul className="list-disc pl-11 space-y-1 text-slate-400 leading-relaxed">
                     <li><strong className="text-white">Primary Recommended Rig & Bait:</strong> Highest-confidence rig, bait type, and target strike depth.</li>
@@ -1307,7 +1294,7 @@ Answer:
                     <span>USGS Water Services REST API</span>
                   </div>
                   <p className="text-slate-400 font-sans leading-relaxed">
-                    Queries the nearest USGS hydrologic stream monitoring station based on vessel coordinates, streaming real-time CFS discharge, gage height, and water temperature.
+                    Queries the nearest USGS hydrologic stream monitoring station based on vessel coordinates, streaming real-time CFS discharge and gage height.
                   </p>
                 </div>
 
@@ -1378,15 +1365,15 @@ Answer:
               <ul className="space-y-2 text-xs text-slate-300 font-sans">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span><strong>Tactical Pattern Analytics Suite:</strong> Multi-factor correlation engine ranking presentations, rigs, baits, water temp bands, and barometric fronts by bite frequency and average weight.</span>
+                  <span><strong>Tactical Pattern Analytics Suite:</strong> Multi-factor correlation engine ranking presentations, rigs, baits, river flow bands, and barometric fronts by bite frequency and average weight.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span><strong>Today's Tactical Gameplan ("What Should I Run Today?"):</strong> Environmental similarity engine comparing live water temp, flow rate, and pressure trend against your logged catches to output high-probability setups.</span>
+                  <span><strong>Today's Tactical Gameplan ("What Should I Run Today?"):</strong> Environmental similarity engine comparing live flow rate, barometric trend, and time of day against your logged catches to output high-probability setups.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span><strong>USGS Real-Time River Hydrology:</strong> Live streamflow (CFS), gage height, and water temperature fetched from the nearest official USGS river monitoring station.</span>
+                  <span><strong>USGS Real-Time River Hydrology:</strong> Live streamflow (CFS) and gage height fetched from the nearest official USGS river monitoring station.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />

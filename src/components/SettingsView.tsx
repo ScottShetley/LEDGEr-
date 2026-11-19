@@ -196,7 +196,7 @@ Answer:
 Answer: 
 
 4. USGS River Hydrology Telemetry:
-- Did the live water temp (°F) and streamflow (CFS) match your river conditions?
+- Did the live streamflow (CFS) and river stage match your river conditions?
 Answer: 
 
 5. Offline Satellite Maps:

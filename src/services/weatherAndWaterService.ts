@@ -42,7 +42,6 @@ function formatIsoTimeTo12h(isoStr?: string): string | undefined {
 export interface UsgsDataResult {
   flowCfs?: number;
   stageFt?: number;
-  waterTempF?: number;
   siteName?: string;
   siteId?: string;
 }
@@ -200,7 +199,7 @@ export async function fetchUsgsWaterData(
     const maxLon = (lon + delta).toFixed(4);
     const maxLat = (lat + delta).toFixed(4);
 
-    const url = `https://waterservices.usgs.gov/nwis/iv/?format=json&bBox=${minLon},${minLat},${maxLon},${maxLat}&parameterCd=00060,00065,00010&siteType=ST`;
+    const url = `https://waterservices.usgs.gov/nwis/iv/?format=json&bBox=${minLon},${minLat},${maxLon},${maxLat}&parameterCd=00060,00065&siteType=ST`;
     
     // Allow up to 12s for USGS National Water Information System to respond
     const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
@@ -214,7 +213,6 @@ export async function fetchUsgsWaterData(
 
     let flowCfs: number | undefined;
     let stageFt: number | undefined;
-    let waterTempF: number | undefined;
     let siteName: string | undefined;
     let siteId: string | undefined;
 
@@ -236,14 +234,6 @@ export async function fetchUsgsWaterData(
         flowCfs = Math.round(numericVal);
       } else if (paramCode === '00065' && stageFt === undefined) {
         stageFt = Math.round(numericVal * 100) / 100;
-      } else if (paramCode === '00010' && waterTempF === undefined) {
-        // Param 00010 is usually in deg C in USGS
-        const unit = ts.variable?.unit?.unitCode;
-        if (unit?.toLowerCase().includes('c') || numericVal < 45) {
-          waterTempF = Math.round((numericVal * 9 / 5 + 32) * 10) / 10;
-        } else {
-          waterTempF = Math.round(numericVal * 10) / 10;
-        }
       }
     }
 
@@ -251,7 +241,6 @@ export async function fetchUsgsWaterData(
       const result: UsgsDataResult = {
         flowCfs,
         stageFt,
-        waterTempF,
         siteName,
         siteId,
       };
@@ -398,13 +387,11 @@ export async function getLiveEnvironmentalSnapshot(
       const u = usgsRes.value;
       snapshot.usgsFlowCfs = u.flowCfs;
       snapshot.usgsStageFt = u.stageFt;
-      snapshot.usgsWaterTempF = u.waterTempF;
       snapshot.usgsSiteName = u.siteName;
       snapshot.usgsSiteId = u.siteId;
     } else if (lastSnapshotCache?.data.usgsFlowCfs) {
       snapshot.usgsFlowCfs = lastSnapshotCache.data.usgsFlowCfs;
       snapshot.usgsStageFt = lastSnapshotCache.data.usgsStageFt;
-      snapshot.usgsWaterTempF = lastSnapshotCache.data.usgsWaterTempF;
       snapshot.usgsSiteName = lastSnapshotCache.data.usgsSiteName;
       snapshot.usgsSiteId = lastSnapshotCache.data.usgsSiteId;
     }

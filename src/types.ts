@@ -124,7 +124,6 @@ export interface EnvironmentalSnapshot {
   cloudCoverPercent?: number;
   usgsFlowCfs?: number;
   usgsStageFt?: number;
-  usgsWaterTempF?: number;
   usgsSiteName?: string;
   usgsSiteId?: string;
   solunarRating?: SolunarPeriodType;
