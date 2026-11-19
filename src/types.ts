@@ -114,6 +114,8 @@ export interface SolunarData {
 export interface EnvironmentalSnapshot {
   airTempF?: number;
   pressureInHg?: number;
+  pressureHpa?: number;
+  pressure3hAgoInHg?: number;
   pressureTrend?: 'rising' | 'falling' | 'steady';
   windSpeedMph?: number;
   windDirectionDeg?: number;

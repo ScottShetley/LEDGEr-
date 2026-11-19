@@ -14,6 +14,8 @@ export function hpaToInHg(hpa: number): number {
 export interface WeatherDataResult {
   airTempF: number;
   pressureInHg: number;
+  pressureHpa: number;
+  pressure3hAgoInHg?: number;
   pressureTrend: 'rising' | 'falling' | 'steady';
   windSpeedMph: number;
   windDirectionDeg: number;
@@ -113,9 +115,11 @@ export async function fetchOpenMeteo(
     // Use Sea Level Pressure (MSL) as primary so readings match standard weather stations & phone apps
     const rawHpa = current.pressure_msl ?? current.surface_pressure ?? 1013.25;
     const pressureInHg = hpaToInHg(rawHpa);
+    const pressureHpa = Math.round(rawHpa * 10) / 10;
     
-    // Determine 3-hour pressure trend
+    // Determine 3-hour pressure trend & retain 3h-ago reading for the analog reference needle
     let pressureTrend: 'rising' | 'falling' | 'steady' = 'steady';
+    let pressure3hAgoInHg: number | undefined;
     const hourlyPressures = data.hourly?.pressure_msl || data.hourly?.surface_pressure;
     if (hourlyPressures && data.hourly?.time) {
       const currentTimeISO = current.time;
@@ -123,6 +127,7 @@ export async function fetchOpenMeteo(
       if (hourIndex >= 3) {
         const pastPressureHpa = hourlyPressures[hourIndex - 3];
         const pastPressureInHg = hpaToInHg(pastPressureHpa);
+        pressure3hAgoInHg = pastPressureInHg;
         const diff = pressureInHg - pastPressureInHg;
         if (diff > 0.02) pressureTrend = 'rising';
         else if (diff < -0.02) pressureTrend = 'falling';
@@ -136,6 +141,8 @@ export async function fetchOpenMeteo(
     const result: WeatherDataResult = {
       airTempF: Math.round(current.temperature_2m ?? 72),
       pressureInHg,
+      pressureHpa,
+      pressure3hAgoInHg,
       pressureTrend,
       windSpeedMph: Math.round(current.wind_speed_10m ?? 5),
       windDirectionDeg: windDir,
@@ -352,6 +359,8 @@ export async function getLiveEnvironmentalSnapshot(
       const w = weatherRes.value;
       snapshot.airTempF = w.airTempF;
       snapshot.pressureInHg = w.pressureInHg;
+      snapshot.pressureHpa = w.pressureHpa;
+      snapshot.pressure3hAgoInHg = w.pressure3hAgoInHg;
       snapshot.pressureTrend = w.pressureTrend;
       snapshot.windSpeedMph = w.windSpeedMph;
       snapshot.windDirectionDeg = w.windDirectionDeg;
@@ -365,6 +374,8 @@ export async function getLiveEnvironmentalSnapshot(
       // Retain last known weather if temporary network glitch
       snapshot.airTempF = lastSnapshotCache.data.airTempF;
       snapshot.pressureInHg = lastSnapshotCache.data.pressureInHg;
+      snapshot.pressureHpa = lastSnapshotCache.data.pressureHpa;
+      snapshot.pressure3hAgoInHg = lastSnapshotCache.data.pressure3hAgoInHg;
       snapshot.pressureTrend = lastSnapshotCache.data.pressureTrend;
       snapshot.windSpeedMph = lastSnapshotCache.data.windSpeedMph;
       snapshot.windDirectionDeg = lastSnapshotCache.data.windDirectionDeg;
@@ -374,6 +385,8 @@ export async function getLiveEnvironmentalSnapshot(
     } else {
       // Fallback baseline if API fails
       snapshot.pressureInHg = 29.92;
+      snapshot.pressureHpa = 1013.2;
+      snapshot.pressure3hAgoInHg = 29.92;
       snapshot.pressureTrend = 'steady';
       snapshot.airTempF = 74;
       snapshot.windSpeedMph = 7;
