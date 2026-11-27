@@ -247,7 +247,7 @@ export async function updateCatch(
     try {
       const res = await updateCatchInIndexedDB(
         id,
-        { ...updates, isSynced: false, syncedAt: undefined },
+        { ...sanitizedUpdates, isSynced: false, syncedAt: undefined },
         photoBlob
       );
       if (!res) {

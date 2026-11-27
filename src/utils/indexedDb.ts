@@ -534,6 +534,10 @@ export async function updateCatchInIndexedDB(
             : undefined,
         };
         photoStore.put(photoRecord);
+      } else if (photoBlob === null && updates.photoUrl === '') {
+        photoStore.delete(photoId);
+        photoStore.delete(`photo-${id}`);
+        photoStore.delete(id);
       }
 
       if (existing) {
@@ -541,6 +545,9 @@ export async function updateCatchInIndexedDB(
         if (photoBlob) {
           updatedResult.photoBlobId = photoId;
           updatedResult.photoSizeBytes = photoBlob.size;
+        } else if (photoBlob === null && updates.photoUrl === '') {
+          updatedResult.photoBlobId = undefined;
+          updatedResult.photoSizeBytes = undefined;
         }
         catchStore.put(updatedResult);
       } else {
